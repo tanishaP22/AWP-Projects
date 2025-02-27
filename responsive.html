@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="kanbanApp">
+
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Kanban Task Manager</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+      <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/2.1.0/angular-drag-and-drop-lists.min.js"></script>
+      <style>
+            body {
+                  background-color: #e4e4e4;
+            }
+
+            .kanban-board {
+                  display: flex;
+                  justify-content: space-around;
+                  gap: 15px;
+            }
+
+            .kanban-column {
+                  flex: 1;
+                  background-color: #ffffff;
+                  border-radius: 10px;
+                  padding: 15px;
+                  box-shadow: 0 4px 8px rgba(10, 20, 30, 0.3);
+                  min-height: 300px;
+            }
+
+            .task {
+                  background-color: #e9ecef8d;
+                  padding: 10px;
+                  border-radius: 8px;
+                  margin-bottom: 10px;
+                  cursor: grab;
+            }
+
+            .task:hover {
+                  background-color: #dee2e6;
+            }
+
+            .ToDo {
+                  border-top: 10px solid #dc3545;
+                  background-color: #fd8f9a;
+            }
+
+            hr {
+                  border-top: 5px solid #5d5c5c;
+                  border-radius: 10px;
+            }
+
+            .ToDo>h4 {
+                  color: #dc3545;
+            }
+
+            .Doing {
+                  border-top: 10px solid #ffc107;
+                  background-color: #f5d882;
+            }
+
+            .Doing>h4 {
+                  color: #eab004;
+            }
+
+            .Done {
+                  border-top: 10px solid #28a745;
+                  background-color: #7bf798;
+            }
+
+            .Done>h4 {
+                  color: #28a745;
+            }
+
+            @media (max-width: 768px) {
+                  .kanban-board {
+                        flex-direction: column;
+                        align-items: center;
+                  }
+                  .kanban-column {
+                        width: 100%;
+                  }
+            }
+      </style>
+</head>
+
+<body ng-controller="kanbanController">
+      <div class="container mt-4">
+            <h2 class="text-center mb-3">Kanban Task Manager</h2>
+            <div class="input-group mb-3">
+                  <input type="text" class="form-control" ng-model="newTask" placeholder="Enter a task...">
+                  <button class="btn btn-primary" ng-click="addTask()">Add Task</button>
+            </div>
+            <div class="kanban-board">
+                  <div class="kanban-column ToDo" dnd-list="tasks.todo">
+                        <h4 class="text-center">To Do</h4>
+                        <hr>
+                        <ul class="list-unstyled">
+                              <li class="task" ng-repeat="task in tasks.todo" dnd-draggable="task"
+                                    dnd-moved="tasks.todo.splice($index, 1); saveTasks();" dnd-effect-allowed="move">
+                                    {{ task }}
+                                    <button class="btn btn-sm btn-outline-danger float-end"
+                                          ng-click="removeTask($index, 'todo')">X</button>
+                              </li>
+                        </ul>
+                  </div>
+                  <div class="kanban-column Doing" dnd-list="tasks.doing">
+                        <h4 class="text-center">Doing</h4>
+                        <hr>
+                        <ul class="list-unstyled">
+                              <li class="task" ng-repeat="task in tasks.doing" dnd-draggable="task"
+                                    dnd-moved="tasks.doing.splice($index, 1); saveTasks();" dnd-effect-allowed="move">
+                                    {{ task }}
+                                    <button class="btn btn-sm btn-outline-danger float-end"
+                                          ng-click="removeTask($index, 'doing')">X</button>
+                              </li>
+                        </ul>
+                  </div>
+                  <div class="kanban-column Done" dnd-list="tasks.done">
+                        <h4 class="text-center">Done</h4>
+                        <hr>
+                        <ul class="list-unstyled">
+                              <li class="task" ng-repeat="task in tasks.done" dnd-draggable="task"
+                                    dnd-moved="tasks.done.splice($index, 1); saveTasks();" dnd-effect-allowed="move">
+                                    {{ task }}
+                                    <button class="btn btn-sm btn-outline-danger float-end"
+                                          ng-click="removeTask($index, 'done')">X</button>
+                              </li>
+                        </ul>
+                  </div>
+            </div>
+      </div>
+      <script>
+            var app = angular.module("kanbanApp", ["dndLists"]);
+            app.controller("kanbanController", function ($scope) {
+                  function loadTasks() {
+                        $scope.tasks = JSON.parse(localStorage.getItem("tasks")) || { todo: [], doing: [], done: [] };
+                  }
+
+                  function saveTasks() {
+                        localStorage.setItem("tasks", JSON.stringify($scope.tasks));
+                  }
+
+                  $scope.addTask = function () {
+                        if ($scope.newTask) {
+                              $scope.tasks.todo.push($scope.newTask);
+                              $scope.newTask = "";
+                              saveTasks();
+                        }
+                  };
+
+                  $scope.removeTask = function (index, list) {
+                        $scope.tasks[list].splice(index, 1);
+                        saveTasks();
+                  };
+
+                  $scope.$watch("tasks", saveTasks, true);
+                  loadTasks();
+            });
+      </script>
+</body>
+</html>
